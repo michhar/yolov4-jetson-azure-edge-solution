@@ -1,0 +1,8 @@
+future==0.18.2
+easydict
+matplotlib
+flask
+pillow
+gunicorn
+azure-storage-blob==2.1.0
+python-dotenv==0.15.0
