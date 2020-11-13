@@ -1,4 +1,4 @@
-# Copyright (c) Microsoft Corporation.
+# Copyright (c) Micheleen Harris
 # Licensed under the MIT License.
 import core.utils as utils
 from core.yolov4 import filter_boxes
@@ -13,13 +13,15 @@ import json
 import os
 import copy
 import time
+import datetime
+import base64
 
 from PIL import Image
 import cv2
 import numpy as np
 from flask import Flask, request, jsonify, Response
 
-from azure.storage.blob import BlockBlobService, PublicAccess
+from azure.storage.blob import BlobServiceClient
 from dotenv import load_dotenv, find_dotenv
 
 # Look for a file called .env that contains necessary environment variables
@@ -63,8 +65,23 @@ class YoloV4TinyModel:
         self.output_details = self.interpreter.get_output_details()
 
         # Connect to local, edge Blob Storage
-        self.local_blob_name = os.getenv("LOCAL_STORAGE_ACCOUNT_NAME", "UNKNOWN_NAME")
-        self.local_blob_key = os.getenv("LOCAL_STORAGE_ACCOUNT_KEY", "UNKNOWN_KEY")
+        self._local_account = os.getenv("LOCAL_STORAGE_ACCOUNT_NAME", "UNKNOWN_NAME")
+        self._local_blob_key = os.getenv("LOCAL_STORAGE_ACCOUNT_KEY", "UNKNOWN_KEY")
+        self.local_container_name = os.getenv("LOCAL_STORAGE_CONTAINER_NAME", "UNKNOWN_NAME")
+        super_str = 'DefaultEndpointsProtocol=http;AccountName=' + \
+            self._local_account + \
+            ';AccountKey=' + self._local_blob_key + \
+            ';BlobEndpoint=http://azureblobstorageoniotedge:11002/' + \
+            self._local_account + ';'
+        self.blob_service_client = BlobServiceClient.from_connection_string(super_str,
+            api_version='2019-07-07')
+        self.container_client = self.blob_service_client.get_container_client(
+            self.local_container_name)
+        try:
+            self.container_client.create_container()
+        except Exception as err: # Error because already exists
+            print([{'[INFO]': 
+                'Problem during creation of storage container : {}'.format(repr(err))}])
 
     def Preprocess(self, cvImage):
         """Preprocess cv2/opencv formatted image: convert to RGB, resize, 
@@ -74,7 +91,6 @@ class YoloV4TinyModel:
         imageBlob = cv2.resize(imageBlob, (self.input_size, self.input_size))
         imageBlob = imageBlob / 255. # normalize
         imageBlob = imageBlob[np.newaxis, ...].astype(np.float32) # batch size 1
-
         return imageBlob
 
     def Postprocess(self, boxes, scores, indices):
@@ -136,13 +152,33 @@ class YoloV4TinyModel:
             except Exception as err:
                 return [{'[ERROR]': 'Error during filter and NMS: {}'.format(repr(err))}]
 
-            # # For debuging - save image w/ annotations
-            # pred_bbox = [boxes.numpy(), scores.numpy(), indices.numpy(), valid_detections.numpy()]
-            # image = cv2.cvtColor(cvImage, cv2.COLOR_BGR2RGB)
-            # image = utils.draw_bbox(image, pred_bbox)
-            # image = Image.fromarray(image.astype(np.uint8))
-            # image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
-            # cv2.imwrite(FLAGS.output, image)
+            try:
+                # Save image w/ annotations to Blob Storage (through IoT module 
+                # and then to cloud Azure Storage pending connectivity)
+                pred_bbox = [boxes.numpy(),
+                             scores.numpy(),
+                             indices.numpy(),
+                             valid_detections.numpy()]
+                image = cv2.cvtColor(cvImage, cv2.COLOR_BGR2RGB)
+                image = utils.draw_bbox(image, pred_bbox)
+                image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_BGR2RGB)
+                retval, image_buffer = cv2.imencode('.jpg', image)
+                jpg_as_text = base64.b64encode(image_buffer)
+                blob_name = datetime.datetime.now().strftime(
+                    "%d-%b-%Y-%H-%M-%S") +"_annotated.jpg"
+                # Try to create container
+                try:
+                    self.container_client = self.blob_service_client.get_container_client(
+                        self.local_container_name)
+                    self.container_client.create_container()
+                except Exception as err: # Error because already exists
+                    print([{'[INFO]': 
+                        'Problem during creation of storage container : {}'.format(repr(err))}])
+                    pass
+                self.container_client.upload_blob(blob_name, jpg_as_text)
+            except Exception as err:
+                return [{'[ERROR]': 
+                    'Error sending image to local blob storage: {}'.format(repr(err))}]
 
             # Postprocess
             try:

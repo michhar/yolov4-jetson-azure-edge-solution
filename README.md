@@ -19,7 +19,8 @@ Note: References to third-party software in this repo are for informational and 
 ### Prerequisites for building image
 
 1. [Ensure NVIDIA Docker](https://github.com/NVIDIA/nvidia-docker/wiki/NVIDIA-Container-Runtime-on-Jetson) on your Jetson
-2. Install [curl](http://curl.haxx.se/)
+2. [Install curl](http://curl.haxx.se/)
+3. [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt) to be able to push image to Azure Container Registry (ACR)
 
 ### Preparing for using Blob Storage on the Edge
 
@@ -27,7 +28,7 @@ Note: References to third-party software in this repo are for informational and 
 
 ```
 LOCAL_STORAGE_ACCOUNT_NAME=<Name for local blob storage in IoT edge Blob Storage module>
-LOCAL_STORAGE_ACCOUNT_KEY=<Key generated for local IoT edge Blob Storage module>
+LOCAL_STORAGE_ACCOUNT_KEY=<Key generated for local IoT edge Blob Storage module in double quotes>
 ```
 
 ### Building the docker container
@@ -38,8 +39,27 @@ LOCAL_STORAGE_ACCOUNT_KEY=<Key generated for local IoT edge Blob Storage module>
 ```bash
 sudo nvidia-docker build . -t tiny-yolov4-tflite:arm64v8-cuda-cudnn -f arm64v8-gpu-cudnn.dockerfile
 ```
+
+### Upload docker image to Azure Container Registry
+
+Log in to ACR with the Azure CLI (also may use docker login):
+
+```
+az acr login --name <name of your ACR user>
+```
+
+Push the image to ACR:
+
+```
+docker push <your ACR URL>/tiny-yolov4-tflite:arm64v8-cuda-cudnn
+```
+
+Note:
+- More instruction at [Push and Pull Docker images - Azure Container Registry](http://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli) to save your image for later use on another machine.
+- IMPORTANT:  Docker may need to be configured to run with non-root user as in [Manage Docker as a non-root user](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user).
+
     
-## Running and testing
+## Running and testing locally
 
 The REST endpoint accepts an image with the size of 416 pixels by 416 pixels. This is requirement by the tiny YOLOv4 model. Since the LVA edge module is capable of sending specified size image in specified format, we are not preprocessing the incoming images to resize them. This is mainly because of the performance improvement.
 
@@ -102,11 +122,6 @@ docker stop my_yolo_container
 docker rm my_yolo_container
 ```
 
-## Upload docker image to Azure container registry
-
-Follow instruction in [Push and Pull Docker images - Azure Container Registry](http://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli) to save your image for later use on another machine.
-
-IMPORTANT:  Docker may need to be configured to run with non-root user as in [Manage Docker as a non-root user](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user).
 
 ## Deploy as an Azure IoT Edge module
 
