@@ -1,6 +1,10 @@
-# Tiny YOLOv4 TensorFlow Lite model on Jetson Xavier
+# Tiny YOLOv4 TensorFlow Lite model on Jetson Xavier with Azure Blob Storage and Live Video Analytics
 
-This sample is an example of running an AI container on the Jetson platform.  This container utilizes the GPU on the Jetson (with NVIDIA drivers, CUDA and cuDNN installed) using an NVIDIA L4T (linux for Tegra) base image with TensorFlow 2 installed.  The Jetson must have been flashed with Jetpack 4.4.
+This repo is an example of running an AI container on the Jetson platform in conjunction with the [Azure Blob Storage IoT Edge module](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-store-data-blob?view=iotedge-2018-06) using the [Live Video Analytics](https://docs.microsoft.com/en-us/azure/media-services/live-video-analytics-edge/) as a platform ontop of [Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/?view=iotedge-2018-06) runtime.
+
+This container utilizes the GPU on the Jetson (with NVIDIA drivers, CUDA and cuDNN installed) using an NVIDIA L4T (linux for Tegra) base image with TensorFlow 2 installed.  The Jetson must have been flashed with Jetpack 4.4.
+
+![architecture of using Azure Blob Storage iot edge module with LVA](assets/LVA-AI-Blob.jpg)
 
 ## Xavier Setup and requirements
 
