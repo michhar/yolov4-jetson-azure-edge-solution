@@ -61,10 +61,52 @@ Note:
     
 ## Deploy as an edge module for Live Video Analytics
 
-1. Deployment manifest
-2. Console app
+In VSCode, the following will be needed:
 
-When the Live Video Analytics on Edge direct methods are invoked on device, images will appear in a folder with the name of your local container e.g. `/media/nvme/blob_storage/BlockBlob/annotatedimageslocal` and with default deployment manifest, will stick around on device for 60 minutes before being deteted after upload to the cloud Blob Storage container (by default called `annotated-images-xavier-yolo4`).
+1. Azure IoT Extension
+1. Deployment manifest
+2. LVA console app code
+
+When the Live Video Analytics on Edge direct methods are invoked on device with the console app, images will appear in a folder with the name of your local container e.g. `/media/nvme/blob_storage/BlockBlob/annotatedimageslocal` and with default deployment manifest, will stick around on device for 60 minutes as well as being uploaded to the cloud Blob Storage container (in this example, called `annotated-images-xavier-yolo4`).
+
+From VSCode, messages to IoT Hub should look similar to:
+```
+[IoTHubMonitor] [1:11:41 PM] Message received from [xavier-yolov4/lvaEdge]:
+{
+  "inferences": [
+    {
+      "type": "entity",
+      "entity": {
+        "tag": {
+          "value": "car",
+          "confidence": "0.43346554"
+        },
+        "box": {
+          "l": "0.6137574",
+          "t": "0.5797131",
+          "w": "0.05888599",
+          "h": "0.047415733"
+        }
+      }
+    },
+    {
+      "type": "entity",
+      "entity": {
+        "tag": {
+          "value": "truck",
+          "confidence": "0.33760804"
+        },
+        "box": {
+          "l": "0.6137574",
+          "t": "0.5797131",
+          "w": "0.05888599",
+          "h": "0.047415733"
+        }
+      }
+    }
+  ]
+}
+```
 
 ## Troubleshooting
 
