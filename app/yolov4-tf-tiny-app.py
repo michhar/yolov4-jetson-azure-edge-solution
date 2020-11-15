@@ -126,6 +126,7 @@ class YoloV4TinyModel:
         """Use tflite interpreter to predict bounding boxes and 
         confidence score."""
         with self._lock:
+            timestamp = datetime.datetime.now()
             # Predict
             try:
                 image_data = self.Preprocess(cvImage)
@@ -161,21 +162,28 @@ class YoloV4TinyModel:
                              valid_detections.numpy()]
                 image = cv2.cvtColor(cvImage, cv2.COLOR_BGR2RGB)
                 image = utils.draw_bbox(image, pred_bbox)
-                image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_BGR2RGB)
-                retval, image_buffer = cv2.imencode('.jpg', image)
-                jpg_as_text = base64.b64encode(image_buffer)
-                blob_name = datetime.datetime.now().strftime(
-                    "%d-%b-%Y-%H-%M-%S") +"_annotated.jpg"
-                # Try to create container
+                #image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_BGR2RGB)
+                #retval, image_buffer = cv2.imencode('.jpg', image)
+                #image_bytes = image_buffer.tobytes()
+                #image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_BGR2RGB)
+                # Convert from OpenCV to PIL format
+                pil_image = Image.fromarray(image.astype(np.uint8))
+                #bytes_io = io.BytesIO()
+                #pil_image.save(bytes_io, format='JPEG')
+                # Option 1: save to disk (not efficient, buffers should be used...)
+                pil_image.save(os.getcwd()+ os.sep + 'tmp_yolov4_inf.jpg')
+                blob_name = str(timestamp.strftime(
+                    "%d-%b-%Y-%H-%M-%S.%f")) +"_annotated.jpg"
                 try:
-                    self.container_client = self.blob_service_client.get_container_client(
+                    container_client = self.blob_service_client.get_container_client(
                         self.local_container_name)
-                    self.container_client.create_container()
-                except Exception as err: # Error because already exists
-                    print([{'[INFO]': 
-                        'Problem during creation of storage container : {}'.format(repr(err))}])
-                    pass
-                self.container_client.upload_blob(blob_name, jpg_as_text)
+                    props = container_client.get_container_properties()
+                except Exception as err:
+                    # Local container needs to be created (happens just once)
+                    container_client.create_container()
+                finally:
+                    with open(os.getcwd()+ os.sep + 'tmp_yolov4_inf.jpg', 'rb') as data:
+                        container_client.upload_blob(blob_name, data)
             except Exception as err:
                 return [{'[ERROR]': 
                     'Error sending image to local blob storage: {}'.format(repr(err))}]

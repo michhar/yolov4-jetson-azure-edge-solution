@@ -15,7 +15,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 libsm6 libxext6 libxrender-dev unzip \
     make cmake automake gcc g++ pkg-config \
     python3-numpy python3-opencv python3-h5py \
-    libhdf5-serial-dev hdf5-tools libhdf5-dev libhdf5-100 zlib1g-dev zip libjpeg8-dev liblapack-dev libblas-dev gfortran \
+    libhdf5-serial-dev hdf5-tools libhdf5-dev \
+    libhdf5-100 zlib1g-dev zip libjpeg8-dev liblapack-dev \
+    libblas-dev gfortran vim \
     && cd /usr/local/bin \
     && ln -s /usr/bin/python3 python \
     && pip3 install --upgrade pip \

@@ -1,6 +1,6 @@
 
 # Packages from azure for azure-storage-blob to work
-azure-core==1.8.1
+azure-core==1.9.0
 
 future==0.18.2
 easydict
@@ -8,5 +8,5 @@ matplotlib
 flask
 pillow
 gunicorn
-azure-storage-blob==12.4.0
+azure-storage-blob==12.6.0
 python-dotenv==0.15.0

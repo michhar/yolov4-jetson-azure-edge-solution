@@ -59,73 +59,12 @@ Note:
 - IMPORTANT:  Docker may need to be configured to run with non-root user as in [Manage Docker as a non-root user](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user).
 
     
-## Running and testing locally
+## Deploy as an edge module for Live Video Analytics
 
-The REST endpoint accepts an image with the size of 416 pixels by 416 pixels. This is requirement by the tiny YOLOv4 model. Since the LVA edge module is capable of sending specified size image in specified format, we are not preprocessing the incoming images to resize them. This is mainly because of the performance improvement.
+1. Deployment manifest
+2. Console app
 
-Run the container using the following docker command.
-
-```bash
-sudo docker run --runtime=nvidia --name my_yolo_container -p 80:80 -d  -i tiny-yolov4-tflite:arm64v8-cuda-cudnn
-```
-
-Test the container using the following commands.
-
-### /score
-To get a list of detected objects, use the following command.
-
-```bash
-curl -X POST http://127.0.0.1/score -H "Content-Type: image/jpeg" --data-binary @<full_path_to_image_file_in_jpeg>
-```
-If successful, you will see JSON printed on your screen that looks something like this
-```json
-{
-  "inferences": [
-    {
-      "type": "entity",
-      "entity": {
-        "tag": {
-          "value": "zebra",
-          "confidence": "0.8333446"
-        },
-        "box": {
-          "l": "0.6046585",
-          "t": "0.4014857",
-          "w": "0.21853799",
-          "h": "0.49041268"
-        }
-      }
-    },
-    {
-      "type": "entity",
-      "entity": {
-        "tag": {
-          "value": "giraffe",
-          "confidence": "0.769461"
-        },
-        "box": {
-          "l": "0.33088243",
-          "t": "0.0015953871",
-          "w": "0.5128964",
-          "h": "0.83996487"
-        }
-      }
-    }
-  ]
-}
-```
-
-Terminate the container using the following docker commands.
-
-```bash
-docker stop my_yolo_container
-docker rm my_yolo_container
-```
-
-
-## Deploy as an Azure IoT Edge module
-
-Follow instruction in [Deploy module from Azure portal](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-portal) to deploy the container image as an IoT Edge module (use the IoT Edge module option). 
+When the Live Video Analytics on Edge direct methods are invoked on device, images will appear in a folder with the name of your local container e.g. `/media/nvme/blob_storage/BlockBlob/annotatedimageslocal` and with default deployment manifest, will stick around on device for 60 minutes before being deteted after upload to the cloud Blob Storage container (by default called `annotated-images-xavier-yolo4`).
 
 ## Troubleshooting
 
@@ -136,6 +75,36 @@ To troubleshoot a running container you may enter it with ssh by using the follo
 ```
 sudo docker exec -it my_yolo_container /bin/bash
 ```
+
+For IoT Edge troubleshooting see [Troubleshoot your IoT Edge device](https://docs.microsoft.com/en-us/azure/iot-edge/troubleshoot).
+
+### Azure Media Services
+
+1.  If AMS account has changed, then on device delete and recreate the App Data Directory for AMS:
+```
+sudo rm -fr /var/lib/azuremediaservices
+mdkir -p /var/lib/azuremediaservices
+```
+   - It is a good idea to then restart lvaEdge module
+   ```
+   iotedge restart lvaEdge
+   ```
+
+### Azure Blob Storage IoT Edge module
+
+1. Check the logs for Permission denied errors for folder on device used as container.
+```
+iotedge logs <name of your edge container e.g. azureblobstorageoniotedge>
+```
+   - If there is a "Permission denied" error try changing the owner and group on the folder (see [Granting directory access to container user on Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-store-data-blob?view=iotedge-2018-06#granting-directory-access-to-container-user-on-linux)).
+   ```
+   sudo chown -R 11000:11000 <local blob directory e.g. /media/nvme/blob_storage>
+   ```
+   - It is a good idea to then restart lvaEdge module
+   ```
+   iotedge restart lvaEdge
+   ```
+
 
 ## Helpful links
 
