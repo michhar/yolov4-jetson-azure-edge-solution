@@ -2,14 +2,18 @@
 
 This repo is an example of running an AI container on the Jetson platform in conjunction with the [Azure Blob Storage IoT Edge module](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-store-data-blob?view=iotedge-2018-06) using the [Live Video Analytics](https://docs.microsoft.com/en-us/azure/media-services/live-video-analytics-edge/) as a platform ontop of [Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/?view=iotedge-2018-06) runtime.
 
-This container utilizes the GPU on the Jetson (with NVIDIA drivers, CUDA and cuDNN installed) using an NVIDIA L4T (linux for Tegra) base image with TensorFlow 2 installed.  The Jetson must have been flashed with Jetpack 4.4.
+The purpose of this architecture is to create a pipeline that can route video (frame-by-frame) into an AI module for inferencing on the edge (image classification, object detection, etc.) that, in turn, stores output frames in a Blob Storage IoT Edge module storage container (a storage container, here, is a unit of storage within the Blob Edge module).  The Blob Storage IoT storage container or set of containers essentially replicate to the Azure cloud (using some tunable user settings), to Azure Blob Storage, given internet connectivity (or stores on the edge until connectivity is achieved).  
+
+In the diagram below, frames from an AI module are shown being sent on the edge to two storage containers in the Blob Edge module:  1) for highly confident detection frames and 2) for the more poorly scoring detections (an indication that objects might not be being detected well by the ML model).  Poorly performing frames from the AI edge module are good candidates for labeling and retraining the vision ML model to boost performance, thus have their own container, "unannotaed".  Once the frames are replicated in the cloud in Azure Blob Storage, [Azure Machine Learning](https://docs.microsoft.com/en-us/azure/machine-learning/) may be used to label and retrain the ML model.  The confident, annotated frames in the "annotated" conatiner could be reviewed, for instance, within an Azure Web App (code not provided, here).
 
 ![architecture of using Azure Blob Storage iot edge module with LVA](assets/LVA-AI-Blob.jpg)
+
+This AI module (docker container) utilizes the GPU on the Jetson (with NVIDIA drivers, CUDA and cuDNN installed) using an NVIDIA L4T (linux for Tegra) base image with TensorFlow 2 installed.  The Jetson must have been flashed with Jetpack 4.4.
 
 ## Xavier Setup and requirements
 
 - Flashed with JetPack 4.4 (L4T R32.4.3) with all ML and CV tools (including `nvidia-docker`)
-- Samsung NVMe 512 GB to store docker images
+- Samsung NVMe to store docker images and serve as location for Blob Storage data
 - 16 GB swap file on NVMe mount
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt#manual-install-instructions) for pushing image to Azure Container Registry
 - [Optional] Docker may be configured to run with non-root user as in [Manage Docker as a non-root user](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user) allowing the omission of using `sudo` with docker
@@ -37,7 +41,7 @@ LOCAL_STORAGE_ACCOUNT_KEY=<Key generated for local IoT edge Blob Storage module 
 
 ### Building the docker container
 
-1. Create a new directory on your machine and copy all the files (including the sub-folders) from this GitHub folder to that directory.
+1. Create a new directory on your machine and copy all the files (including the sub-folders) from this GitHub repo to that directory.
 2. Build the container image (will take several minutes) by running the following docker command from a terminal window in that directory.
 
 ```bash
