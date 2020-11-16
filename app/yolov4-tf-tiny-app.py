@@ -1,5 +1,9 @@
 # Copyright (c) Micheleen Harris
 # Licensed under the MIT License.
+"""
+App to run inference server for YOLO v4 TFLite model and send
+frames to Azure Blob IoT Edge module.
+"""
 import core.utils as utils
 from core.yolov4 import filter_boxes
 
@@ -15,6 +19,8 @@ import copy
 import time
 import datetime
 import base64
+import traceback
+import sys
 
 from PIL import Image
 import cv2
@@ -162,31 +168,35 @@ class YoloV4TinyModel:
                              valid_detections.numpy()]
                 image = cv2.cvtColor(cvImage, cv2.COLOR_BGR2RGB)
                 image = utils.draw_bbox(image, pred_bbox)
-                #image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_BGR2RGB)
-                #retval, image_buffer = cv2.imencode('.jpg', image)
-                #image_bytes = image_buffer.tobytes()
-                #image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_BGR2RGB)
-                # Convert from OpenCV to PIL format
+                image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_BGR2RGB)
                 pil_image = Image.fromarray(image.astype(np.uint8))
-                #bytes_io = io.BytesIO()
-                #pil_image.save(bytes_io, format='JPEG')
-                # Option 1: save to disk (not efficient, buffers should be used...)
-                pil_image.save(os.getcwd()+ os.sep + 'tmp_yolov4_inf.jpg')
-                blob_name = str(timestamp.strftime(
-                    "%d-%b-%Y-%H-%M-%S.%f")) +"_annotated.jpg"
-                try:
-                    container_client = self.blob_service_client.get_container_client(
-                        self.local_container_name)
-                    props = container_client.get_container_properties()
-                except Exception as err:
-                    # Local container needs to be created (happens just once)
-                    container_client.create_container()
-                finally:
-                    with open(os.getcwd()+ os.sep + 'tmp_yolov4_inf.jpg', 'rb') as data:
-                        container_client.upload_blob(blob_name, data)
+                # To check if there are bboxes
+                indices_check = np.squeeze(indices.numpy(), axis=0)
+                if len(indices_check) > 0:
+                    # Save image to buffer
+                    bytes_io = io.BytesIO()
+                    pil_image.save(bytes_io, format='JPEG')
+                    bytes_im = bytes_io.getvalue()
+                    # Name in blob to use
+                    blob_name = str(timestamp.strftime(
+                        "%d-%b-%Y-%H-%M-%S.%f")) +"_annotated.jpg"
+                    try:
+                        container_client = self.blob_service_client.get_container_client(
+                            self.local_container_name)
+                        props = container_client.get_container_properties()
+                    except Exception as err:
+                        # Local container needs to be created if not
+                        container_client.create_container()
+                    # Upload pil image as buffer
+                    container_client.upload_blob(blob_name, bytes_im)
             except Exception as err:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
                 return [{'[ERROR]': 
-                    'Error sending image to local blob storage: {}'.format(repr(err))}]
+                    'Error sending image to local blob storage: {}'.format(
+                     repr(traceback.format_exception(
+                         exc_type,
+                         exc_value,
+                         exc_traceback)))}]
 
             # Postprocess
             try:
