@@ -17,6 +17,16 @@ This AI module (docker container) utilizes the GPU on the Jetson (with NVIDIA dr
 - 16 GB swap file on NVMe mount
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt#manual-install-instructions) for pushing image to Azure Container Registry
 - [Optional] Docker may be configured to run with non-root user as in [Manage Docker as a non-root user](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user) allowing the omission of using `sudo` with docker
+- As Azure IoT Edge device (will need Azure IoT Hub for this)
+
+## Azure requirements
+
+1. [Azure Storage Account]()
+2. [Azure Container Registry]()
+3. [Azure IoT Hub]()
+4. [Azure Media Services Account]()
+
+Note:  All of these resources should be created in the same resource group to make it easier to clean-up later.  Also, all of these resources may be create in the Portal _or_ with the Azure CLI on the command line.
 
 ## Build image
 
@@ -66,7 +76,10 @@ Note:
 - More instruction at [Push and Pull Docker images - Azure Container Registry](http://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli) to save your image for later use on another machine.
 - IMPORTANT:  Docker may need to be configured to run with non-root user as in [Manage Docker as a non-root user](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user).
 
-    
+## Set up Azure Storage
+
+In the [Azure Portal](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-portal#create-a-container) or with the Azure CLI create a storage container called `annotated-images-xavier-yolo4`.  This is to where the frames on the edge device will replicate.
+
 ## Deploy as an edge module for Live Video Analytics
 
 In VSCode, the following will be needed:
