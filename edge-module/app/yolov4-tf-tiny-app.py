@@ -180,6 +180,8 @@ class YoloV4TinyModel:
                     # Name in blob to use
                     blob_name = str(timestamp.strftime(
                         "%d-%b-%Y-%H-%M-%S.%f")) +"_annotated.jpg"
+                    blob_metadata = {'timestamp': str(timestamp.strftime("%d-%b-%Y-%H-%M-%S.%f")),
+                            'objects': ','.join([self._labelList[int(i)] for i in indices_check])}
                     try:
                         container_client = self.blob_service_client.get_container_client(
                             self.local_container_name)
@@ -188,7 +190,7 @@ class YoloV4TinyModel:
                         # Local container needs to be created if not
                         container_client.create_container()
                     # Upload pil image as buffer
-                    container_client.upload_blob(blob_name, bytes_im)
+                    container_client.upload_blob(blob_name, bytes_im, metadata=blob_metadata)
             except Exception as err:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 return [{'[ERROR]': 
