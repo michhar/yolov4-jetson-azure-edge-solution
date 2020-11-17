@@ -1,0 +1,12 @@
+*.pyc
+app.db
+./tmp
+./build/*
+.idea
+env
+venv
+*.sublime*
+uploads/
+translations/
+babel/
+__pycache__

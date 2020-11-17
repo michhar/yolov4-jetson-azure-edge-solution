@@ -1,3 +1,5 @@
 .env
+.env_*
 .DS_Store
 *.tflite
+__pycache__

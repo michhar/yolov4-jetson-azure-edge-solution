@@ -168,6 +168,9 @@ iotedge logs <name of your edge container e.g. azureblobstorageoniotedge>
    iotedge restart lvaEdge
    ```
 
+### Keys
+
+Put keys and connection strings in quotes within the files like `.env`.
 
 ## Helpful links
 
