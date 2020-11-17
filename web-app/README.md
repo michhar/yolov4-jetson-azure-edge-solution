@@ -1,19 +1,6 @@
-Base Skeleton to start your application using Flask-AppBuilder
+Application using Flask-AppBuilder
 --------------------------------------------------------------
 
-- Install Flask-AppBuilder and PIL:
-```
-	pip install flask-appbuilder
-    pip install pillow
-```
+This web app is based on the [Flask-AppBuilder](https://github.com/dpgaspar/Flask-AppBuilder) project.
 
-- Run the app:
-```
-    $ export FLASK_APP=app
-    # Create an admin user
-    $ flask fab create-admin
-    # Run dev server
-    $ flask run
-```
-
-That's it!!
+Follow directions on main README [here](https://github.com/michhar/jetson-gpu-yolov4-blob#flask-python-web-app).

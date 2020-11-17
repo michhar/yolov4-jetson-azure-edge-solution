@@ -21,10 +21,10 @@ This AI module (docker container) utilizes the GPU on the Jetson (with NVIDIA dr
 
 ## Azure requirements
 
-1. [Azure Storage Account]()
-2. [Azure Container Registry]()
-3. [Azure IoT Hub]()
-4. [Azure Media Services Account]()
+1. [Azure Storage Account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal)
+2. [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-portal)
+3. [Azure IoT Hub](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-create-through-portal)
+4. [Azure Media Services Account](https://docs.microsoft.com/en-us/azure/media-services/latest/create-account-howto?tabs=portal)
 
 Note:  All of these resources should be created in the same resource group to make it easier to clean-up later.  Also, all of these resources may be create in the Portal _or_ with the Azure CLI on the command line.
 
@@ -52,10 +52,10 @@ LOCAL_STORAGE_ACCOUNT_KEY=<Key generated for local IoT edge Blob Storage module 
 ### Building the docker container
 
 1. Create a new directory on your machine and copy all the files (including the sub-folders) from this GitHub repo to that directory.
-2. Build the container image (will take several minutes) by running the following docker command from a terminal window in that directory.
+2. Build the container image (will take several minutes) by running the following docker command from a terminal window in that directory.  Use your Azure Container Registry (ACR) URL (i.e. <my ACR user>.azurecr.io) as part of the tag in the command below to make it easier to push to this ACR.
 
 ```bash
-sudo nvidia-docker build . -t tiny-yolov4-tflite:arm64v8-cuda-cudnn -f arm64v8-gpu-cudnn.dockerfile
+sudo nvidia-docker build . -t <your ACR URL>/tiny-yolov4-tflite:arm64v8-cuda-cudnn -f arm64v8-gpu-cudnn.dockerfile
 ```
 
 ### Upload docker image to Azure Container Registry
@@ -82,11 +82,11 @@ In the [Azure Portal](https://docs.microsoft.com/en-us/azure/storage/blobs/stora
 
 ## Deploy as an edge module for Live Video Analytics
 
-In VSCode, the following will be needed:
+Visual Studio Code (VSCode) will be used for the following.  The following will be needed:
 
-1. Azure IoT Extension
-1. Deployment manifest
-2. LVA console app code
+1. Azure IoT Tools extension installed (search in VSCode for this)
+1. Deployment manifest file from this repo (`edge-module/deployment.yolov4.gpu.jetson.blob.template.json`)
+2. [LVA Python console app](https://github.com/Azure-Samples/live-video-analytics-iot-edge-python) or [.NET console app](https://github.com/Azure-Samples/live-video-analytics-iot-edge-csharp)
 
 When the Live Video Analytics on Edge direct methods are invoked on device with the console app, images will appear in a folder with the name of your local container e.g. `/media/nvme/blob_storage/BlockBlob/annotatedimageslocal` and with default deployment manifest, will stick around on device for 60 minutes as well as being uploaded to the cloud Blob Storage container (in this example, called `annotated-images-xavier-yolo4`).
 
@@ -224,3 +224,4 @@ Put keys and connection strings in quotes within the files like `.env`.
 
 - [`darknet` implementation for YOLOv4](https://github.com/AlexeyAB/darknet)
 - [TensorFlow YOLOv4 converters and implementations](https://github.com/hunglc007/tensorflow-yolov4-tflite)
+- [Flask-AppBuilder for basis of web app](https://github.com/dpgaspar/Flask-AppBuilder)
