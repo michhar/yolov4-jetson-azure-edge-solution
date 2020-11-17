@@ -10,3 +10,4 @@ translations/
 babel/
 __pycache__
 *.db
+static/

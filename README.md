@@ -129,6 +129,54 @@ From VSCode, messages to IoT Hub should look similar to:
 }
 ```
 
+## Flask Python web app
+
+### Requirments
+
+1. Python 3.6+
+
+### Get started
+
+1. Navigate to the `web-app` directory.
+
+2. Create your environment variables as show in the example below and load them into the current terminal session.
+
+e.g. create a `.vars` file:
+```
+export SAS_STRING="?sv=..."
+export STORAGE_ACCOUNT="storage account name"
+export STORAGE_CONTAINER="private image container name"
+export STORAGE_ACCOUNT_CONN_STRING="DefaultEndpointsProtocol=https;AccountName=..."
+```
+
+Load these variables on a unix system with:
+```
+source .vars
+```
+
+On Windows in the command prompt, each environment variables can be set with the following lines:
+```
+set SAS_STRING "?sv=..."
+set STORAGE_ACCOUNT "storage account name"
+set STORAGE_CONTAINER "private image container name"
+set STORAGE_ACCOUNT_CONN_STRING "DefaultEndpointsProtocol=https;AccountName=..."
+```
+
+
+3. Install the requirements into a dedicated conda environment or virtual environment with:
+```
+# Create a conda env or virtual env first
+pip install -r requirements-webapp.txt
+```
+
+4. Run the app with the following:
+
+```
+python run.py
+```
+
+Then, navigate in your browser to http://127.0.0.1:8080/.
+
 ## Troubleshooting
 
 ### Troubleshooting a running container

@@ -15,25 +15,13 @@ from .models import DetectionFrame
 from azure.storage.blob import BlobServiceClient
 
 
-class DetectionModelView(ModelView):
-    """Class for view for displaying images with detections"""
-    datamodel = SQLAInterface(DetectionFrame, db.session)
-
-    label_columns = {'name':'Name',
-                     'image_metadata': 'ImageMetadata',
-                     'time':'TimeStamp',
-                     'photo_img':'Photo',
-                     'photo_img_thumbnail':'Photo'}
-    list_columns = ['photo_img_thumbnail', 'name']
-    show_columns = ['photo_img','name', 'image_metadata']
-
-    @action("update_images", "Update images", icon="fa-rocket", single=False)
-    def update_images(self, items):
-        """
-        If there are new images in blob storage, this action
-        will update the view to contain them by adding their info
-        to the existing database.
-        """
+def update_images():
+    """
+    If there are new images in blob storage, this action
+    will update the view to contain them by adding their info
+    to the existing database.
+    """
+    try:
         # Connect to Blob Storage
         local_account = os.getenv("STORAGE_ACCOUNT", "UNKNOWN_NAME")
         blob_connection_string = os.getenv("STORAGE_ACCOUNT_CONN_STRING", "UNKNOWN_KEY")
@@ -64,44 +52,39 @@ class DetectionModelView(ModelView):
             if not exists:
                 db.session.add(detection_frame)
             db.session.commit()  # Commits all changes
+    except Exception as err:
+        print('Error ', err)
+        db.session.rollback()
 
-            self.update_redirect()
-            return redirect(self.get_redirect())
+
+class DetectionModelView(ModelView):
+    """Class for view for displaying images with detections"""
+    datamodel = SQLAInterface(DetectionFrame, db.session)
+
+    label_columns = {'name':'Name',
+                     'timestamp':'TimeStamp',
+                     'objects': 'Identified objects',
+                     'photo_img':'Photo',
+                     'photo_img_thumbnail':'Photo'}
+    list_columns = ['photo_img_thumbnail', 'name']
+    show_columns = ['photo_img','name', 'timestamp', 'objects']
+
+    # @action("update_images", "Update images", icon="fa-rocket", single=False)
+    # def update_image_action(self, items):
+    #     """
+    #     If there are new images in blob storage, this action
+    #     will update the view to contain them by adding their info
+    #     to the existing database.
+    #     """
+    #     update_images()
+
+    #     self.update_redirect()
+    #     return redirect(self.get_redirect())
 
 # ------------- INITIALIZE THE DATABASE WITH CURRENT IMAGES IN BLOB -------------
 
 db.create_all()
-
-# Connect to Blob Storage
-local_account = os.getenv("STORAGE_ACCOUNT", "UNKNOWN_NAME")
-blob_connection_string = os.getenv("STORAGE_ACCOUNT_CONN_STRING", "UNKNOWN_KEY")
-local_container_name = os.getenv("STORAGE_CONTAINER", "UNKNOWN_NAME")
-blob_service_client = BlobServiceClient.from_connection_string(blob_connection_string)
-container_client = blob_service_client.get_container_client(
-    local_container_name)
-blob_info = container_client.list_blobs()
-
-# Get metadata
-timestamps = []
-objects = []
-frame_names = []
-for blob in blob_info:
-    blob_client = container_client.get_blob_client(blob.name)
-    properties = blob_client.get_blob_properties()
-    frame_names.append(blob.name)
-    metadata_props = properties.metadata
-    timestamps.append(metadata_props['timestamp'])
-    objects.append(metadata_props['objects'])
-
-# Populate db with image names
-for i in range(len(frame_names)):
-    detection_frame = DetectionFrame(name=frame_names[i],
-                                     timestamp=timestamps[i],
-                                     objects=objects[i])
-    exists = db.session.query(db.exists().where(DetectionFrame.name == frame_names[i])).scalar()
-    if not exists:
-        db.session.add(detection_frame)
-    db.session.commit()  # Commits all changes
+update_images()
 
 # ------------- ADD VIEWS -------------
 
