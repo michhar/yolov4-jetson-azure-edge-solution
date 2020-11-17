@@ -12,9 +12,9 @@ import os
 
 class DetectionFrame(Model):
     id = Column(Integer, primary_key=True)
-    name = Column(String(150), unique = True, nullable=False)
-    #photo = Column(ImageColumn(size=(416, 234, True), thumbnail_size=(30, 30, True)))
-    metadata = Column(String(400), unique = True, nullable=False)
+    name = Column(String(150), unique=True, nullable=False)
+    timestamp = Column(String(100), unique=True, nullable=False)
+    objects = Column(String(400), unique=False, nullable=False)
 
     def photo_img(self):
         im = ImageManager()

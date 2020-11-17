@@ -1,5 +1,4 @@
 *.pyc
-app.db
 ./tmp
 ./build/*
 .idea
@@ -10,3 +9,4 @@ uploads/
 translations/
 babel/
 __pycache__
+*.db
