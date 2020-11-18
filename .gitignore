@@ -5,3 +5,6 @@
 __pycache__
 config/
 deployment.test.template.json
+*.zip
+startup.txt
+.azure
