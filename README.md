@@ -108,7 +108,8 @@ When the Live Video Analytics on Edge direct methods are invoked (through the LV
 
 Steps:
 1.  Associate the device with IoT Hub if haven't already
-2.  Create a `.env` parameters file within the `edge-module` folder with the following contents:
+2.  Create a Service Principal associated with the AMS account ([Manage your Azure AD app and secret](https://docs.microsoft.com/en-us/azure/media-services/latest/access-api-howto?tabs=portal#manage-your-azure-ad-app-and-secret))
+3.  Create a `.env` parameters file within the `edge-module` folder with the following contents:
 
 ```
 SUBSCRIPTION_ID_FOR_AMS=<Azure subscription associated with the AMS account>
@@ -116,8 +117,8 @@ RESOURCE_GROUP_FOR_AMS=<Resource Group where the AMS account resides>
 AMS_ACCOUNT=<AMS account name>
 IOTHUB_CONNECTION_STRING="<IoT Hub connection string>"
 AAD_TENANT_ID=<Active Directory tenant ID>
-AAD_SERVICE_PRINCIPAL_ID=<Active Directory Service Principal ID>
-AAD_SERVICE_PRINCIPAL_SECRET="<Service Principal secret/key>"
+AAD_SERVICE_PRINCIPAL_ID=<Active Directory Service Principal ID associated with AMS>
+AAD_SERVICE_PRINCIPAL_SECRET="<Service Principal secret/key associated with AMS>"
 INPUT_VIDEO_FOLDER_ON_DEVICE="<input video folder on device for the media server>"
 OUTPUT_VIDEO_FOLDER_ON_DEVICE="<output video folder on device to sink video clips from LVA>"
 OUTPUT_BLOB_FOLDER_ON_DEVICE="<output folder for Blob Storage data>"
@@ -131,9 +132,9 @@ LOCAL_STORAGE_ACCOUNT_KEY="<local Edge Storage account key>"
 
 These variables, from the `.env`, will be automatically populated into the IoT Edge deployment manifest file after a deployment manifest file is generated from the template.
 
-3. [Generate the deployment manifest and deploy with VSCode](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-vscode?view=iotedge-2018-06) or the [Azure CLI](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-cli?view=iotedge-2018-06)
-4. Run the LVA console app (Python or .NET)
-5. Monitor the device for messages from VSCode
+4. [Generate the deployment manifest and deploy with VSCode](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-vscode?view=iotedge-2018-06) or the [Azure CLI](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-cli?view=iotedge-2018-06)
+5. Run the LVA console app (Python or .NET)
+6. Monitor the device for messages from VSCode
 
 From VSCode, messages to IoT Hub should look similar to:
 ```
