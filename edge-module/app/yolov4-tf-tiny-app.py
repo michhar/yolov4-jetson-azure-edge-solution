@@ -73,7 +73,8 @@ class YoloV4TinyModel:
         # Connect to local, edge Blob Storage
         self._local_account = os.getenv("LOCAL_STORAGE_ACCOUNT_NAME", "UNKNOWN_NAME")
         self._local_blob_key = os.getenv("LOCAL_STORAGE_ACCOUNT_KEY", "UNKNOWN_KEY")
-        self.local_container_name = os.getenv("LOCAL_STORAGE_CONTAINER_NAME", "UNKNOWN_NAME")
+        self.local_container_name_annotated = os.getenv("LOCAL_STORAGE_CONTAINER_NAME_ANNOTATED", "UNKNOWN_NAME")
+        self.local_container_name_lowconf = os.getenv("LOCAL_STORAGE_CONTAINER_NAME_LOWCONF", "UNKNOWN_NAME")
         super_str = 'DefaultEndpointsProtocol=http;AccountName=' + \
             self._local_account + \
             ';AccountKey=' + self._local_blob_key + \
@@ -81,13 +82,6 @@ class YoloV4TinyModel:
             self._local_account + ';'
         self.blob_service_client = BlobServiceClient.from_connection_string(super_str,
             api_version='2019-07-07')
-        self.container_client = self.blob_service_client.get_container_client(
-            self.local_container_name)
-        try:
-            self.container_client.create_container()
-        except Exception as err: # Error because already exists
-            print([{'[INFO]': 
-                'Problem during creation of storage container : {}'.format(repr(err))}])
 
     def Preprocess(self, cvImage):
         """Preprocess cv2/opencv formatted image: convert to RGB, resize, 
@@ -167,18 +161,25 @@ class YoloV4TinyModel:
                              indices.numpy(),
                              valid_detections.numpy()]
                 image = cv2.cvtColor(cvImage, cv2.COLOR_BGR2RGB)
-                image = utils.draw_bbox(image, pred_bbox)
+                image_annot = utils.draw_bbox(image, pred_bbox)
                 #image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_BGR2RGB)
-                image = image.astype(np.uint8)[:, :, [2, 1, 0]]
-                pil_image = Image.fromarray(image)
+
+                pil_image = Image.fromarray(image_annot.astype(np.uint8))
+                # Save annotaed image to buffer
+                bytes_io_annot = io.BytesIO()
+                pil_image.save(bytes_io_annot, format='JPEG')
+                bytes_im_annot = bytes_io_annot.getvalue()
+
+                # Unannotated image to buffer
+                pil_image = Image.fromarray(image.astype(np.uint8))
+                bytes_io_unannot = io.BytesIO()
+                pil_image.save(bytes_io_unannot, format='JPEG')
+                bytes_im_unannot = bytes_io_unannot.getvalue()
+
                 # To check if there are bboxes
                 indices_check = np.squeeze(indices.numpy(), axis=0)
                 scores_check = np.squeeze(scores.numpy(), axis=0)
                 if scores_check.any() > FLAGS.score:
-                    # Save image to buffer
-                    bytes_io = io.BytesIO()
-                    pil_image.save(bytes_io, format='JPEG')
-                    bytes_im = bytes_io.getvalue()
                     # Name in blob to use
                     blob_name = str(timestamp.strftime(
                         "%d-%b-%Y-%H-%M-%S.%f")) +"_annotated.jpg"
@@ -187,13 +188,30 @@ class YoloV4TinyModel:
                                 len(indices_check)) if scores_check[i] > FLAGS.score]))}
                     try:
                         container_client = self.blob_service_client.get_container_client(
-                            self.local_container_name)
+                            self.local_container_name_annotated)
                         props = container_client.get_container_properties()
                     except Exception as err:
                         # Local container needs to be created if not
                         container_client.create_container()
                     # Upload pil image as buffer
-                    container_client.upload_blob(blob_name, bytes_im, metadata=blob_metadata)
+                    container_client.upload_blob(blob_name, bytes_im_annot, metadata=blob_metadata)
+                # If all scores are below threshold let's store the frames for later use
+                if scores_check.all() < FLAGS.score:
+                    # Name in blob to use
+                    blob_name = str(timestamp.strftime(
+                        "%d-%b-%Y-%H-%M-%S.%f")) +"_lowconf.jpg"
+                    blob_metadata = {'timestamp': str(timestamp.strftime("%d-%b-%Y-%H-%M-%S.%f")),
+                            'objects': ','.join(set([self._labelList[int(indices_check[i])] for i in range(
+                                len(indices_check))]))}
+                    try:
+                        container_client = self.blob_service_client.get_container_client(
+                            self.local_container_name_lowconf)
+                        props = container_client.get_container_properties()
+                    except Exception as err:
+                        # Local container needs to be created if not
+                        container_client.create_container()
+                    # Upload pil image as buffer
+                    container_client.upload_blob(blob_name, bytes_im_unannot, metadata=blob_metadata)
             except Exception as err:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 return [{'[ERROR]': 
