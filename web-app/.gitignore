@@ -10,4 +10,4 @@ translations/
 babel/
 __pycache__
 *.db
-static/
+image_cnt.txt

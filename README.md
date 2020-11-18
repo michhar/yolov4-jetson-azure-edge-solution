@@ -21,6 +21,8 @@ This AI module (docker container) utilizes the GPU on the Jetson (with NVIDIA dr
 
 ## Azure requirements
 
+Create the following resources:
+
 1. [Azure Storage Account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal)
 2. [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-portal)
 3. [Azure IoT Hub](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-create-through-portal)
@@ -42,17 +44,20 @@ Note: References to third-party software in this repo are for informational and 
 
 ### Preparing for using Blob Storage on the Edge
 
-1. Create a file in the `app/` folder called `.env` with the following contents:
+1. You will need to create a local key for the Blob Edge module.  Generate the _local_ storage key with the `scripts/generate_key_for_local.py` or a tool like [GeneratePlus](https://generate.plus/en/base64).
+2. Create a file in the `app/` folder called `.env` with the following contents:
 
 ```
-LOCAL_STORAGE_ACCOUNT_NAME=<Name for local blob storage in IoT edge Blob Storage module>
-LOCAL_STORAGE_ACCOUNT_KEY=<Key generated for local IoT edge Blob Storage module in double quotes>
+LOCAL_STORAGE_ACCOUNT_NAME=<Name for local blob storage in IoT edge Blob Storage module (default: annotatedimageslocal)>
+LOCAL_STORAGE_ACCOUNT_KEY=<Key you generated for local IoT edge Blob Storage module in double quotes>
 ```
+
+Note:  Refer to [Deploy the Azure Blob Storage on IoT Edge module to your device](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-blob?view=iotedge-2018-06) for general information
 
 ### Building the docker container
 
 1. Create a new directory on your machine and copy all the files (including the sub-folders) from this GitHub repo to that directory.
-2. Build the container image (will take several minutes) by running the following docker command from a terminal window in that directory.  Use your Azure Container Registry (ACR) URL (i.e. <my ACR user>.azurecr.io) as part of the tag in the command below to make it easier to push to this ACR.
+2. Build the container image (will take several minutes) by running the following docker command from a terminal window in that directory.  Use your ACR URL (i.e. <my ACR user>.azurecr.io) as part of the tag in the command below to make it easier to push to this ACR.
 
 ```bash
 sudo nvidia-docker build . -t <your ACR URL>/tiny-yolov4-tflite:arm64v8-cuda-cudnn -f arm64v8-gpu-cudnn.dockerfile
@@ -141,7 +146,7 @@ From VSCode, messages to IoT Hub should look similar to:
 
 2. Create your environment variables as show in the example below and load them into the current terminal session.
 
-e.g. create a `.vars` file:
+e.g. create a `.vars` file for unix systems as in:
 ```
 export SAS_STRING="?sv=..."
 export STORAGE_ACCOUNT="storage account name"
@@ -163,11 +168,13 @@ set STORAGE_ACCOUNT_CONN_STRING "DefaultEndpointsProtocol=https;AccountName=..."
 ```
 
 
-3. Install the requirements into a dedicated conda environment or virtual environment with:
+3. Install the requirements into a dedicated [conda environment](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) or [virtual environment with `venv`](https://docs.python.org/3/library/venv.html) (both are a best practice) with:
 ```
-# Create a conda env or virtual env first
-pip install -r requirements-webapp.txt
+# Create a conda env or virtual env first, then...
+pip install -r requirements.txt
 ```
+
+You will then need to activate the environment.
 
 4. Run the app with the following:
 
@@ -175,7 +182,17 @@ pip install -r requirements-webapp.txt
 python run.py
 ```
 
-Then, navigate in your browser to http://127.0.0.1:8080/.
+Then, navigate in your browser to http://127.0.0.1:8080/ to see the web app running locally.
+
+### Deploy the web app to Azure as an App Service
+
+You can deploy the Flask-based Python web app from the `web-app` folder with the Azure CLI as shown in [Quickstart: Create a Python app in Azure App Service on Linux](https://docs.microsoft.com/en-us/azure/app-service/quickstart-python?tabs=bash&pivots=python-framework-flask).  You will need to set the same environment variables in the `.vars` file within the **Settings --> Configuration** blade in the Azure Portal under the App Service resource:
+
+![web app configuration in Azure](assets/webapp_config.png)
+
+The final web app with look something like:
+
+![final web app](assets/webapp.png)
 
 ## Troubleshooting
 
