@@ -131,7 +131,7 @@
                   "LOCAL_STORAGE_ACCOUNT_KEY=$LOCAL_STORAGE_ACCOUNT_KEY"
                  ],
                  "HostConfig":{
-                   "Binds": ["/media/nvme/blob_storage:/blobroot"],
+                   "Binds": ["$OUTPUT_BLOB_FOLDER_ON_DEVICE:/blobroot"],
                    "PortBindings":{
                      "11002/tcp": [{"HostPort":"11002"}]
                    }

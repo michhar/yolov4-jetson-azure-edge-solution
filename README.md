@@ -100,10 +100,40 @@ Note:
 Visual Studio Code (VSCode) will be used for the following.  The following will be needed:
 
 1. Azure IoT Tools extension installed (search in VSCode for this)
-1. Deployment manifest file from this repo (`edge-module/deployment.yolov4.gpu.jetson.blob.template.json`)
-2. [LVA Python console app](https://github.com/Azure-Samples/live-video-analytics-iot-edge-python) or [.NET console app](https://github.com/Azure-Samples/live-video-analytics-iot-edge-csharp)
+2. Deployment manifest file from this repo (`edge-module/deployment.yolov4.gpu.jetson.blob.template.json`)
+3. [LVA Python console app](https://github.com/Azure-Samples/live-video-analytics-iot-edge-python) or [LVA .NET console app](https://github.com/Azure-Samples/live-video-analytics-iot-edge-csharp)
+4. IDs and keys associated with Azure Resources
 
-When the Live Video Analytics on Edge direct methods are invoked on device with the console app, images will appear in a folder with the name of your local container e.g. `/media/nvme/blob_storage/BlockBlob/annotatedimageslocal` and with default deployment manifest, will stick around on device for 60 minutes as well as being uploaded to the cloud Blob Storage container (in this example, called `annotated-images-yolo4`).
+When the Live Video Analytics on Edge direct methods are invoked (through the LVA console app) on device with the console app, images will appear in a folder with the name of your local container e.g. `/media/nvme/blob_storage/BlockBlob/annotatedimageslocal` and with default deployment manifest, will stick around on device for 60 minutes as well as being uploaded to the cloud Blob Storage container (in this example, called `annotated-images-yolo4`).
+
+Steps:
+1.  Associate the device with IoT Hub if haven't already
+2.  Create a `.env` parameters file within the `edge-module` folder with the following contents:
+
+```
+SUBSCRIPTION_ID_FOR_AMS=<Azure subscription associated with the AMS account>
+RESOURCE_GROUP_FOR_AMS=<Resource Group where the AMS account resides>
+AMS_ACCOUNT=<AMS account name>
+IOTHUB_CONNECTION_STRING="<IoT Hub connection string>"
+AAD_TENANT_ID=<Active Directory tenant ID>
+AAD_SERVICE_PRINCIPAL_ID=<Active Directory Service Principal ID>
+AAD_SERVICE_PRINCIPAL_SECRET="<Service Principal secret/key>"
+INPUT_VIDEO_FOLDER_ON_DEVICE="<input video folder on device for the media server>"
+OUTPUT_VIDEO_FOLDER_ON_DEVICE="<output video folder on device to sink video clips from LVA>"
+OUTPUT_BLOB_FOLDER_ON_DEVICE="<output folder for Blob Storage data>"
+APPDATA_FOLDER_ON_DEVICE="/var/lib/azuremediaservices"
+CONTAINER_REGISTRY_USERNAME_myacr=<ACR username>
+CONTAINER_REGISTRY_PASSWORD_myacr=<ACR key>
+CLOUD_STORAGE_CONN_STRING="<Azure Blob Storage cloud connection string>"
+LOCAL_STORAGE_ACCOUNT_NAME="<local Edge Storage account name>"
+LOCAL_STORAGE_ACCOUNT_KEY="<local Edge Storage account key>"
+```
+
+These variables, from the `.env`, will be automatically populated into the IoT Edge deployment manifest file after a deployment manifest file is generated from the template.
+
+3. [Generate the deployment manifest and deploy with VSCode](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-vscode?view=iotedge-2018-06) or the [Azure CLI](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-cli?view=iotedge-2018-06)
+4. Run the LVA console app (Python or .NET)
+5. Monitor the device for messages from VSCode
 
 From VSCode, messages to IoT Hub should look similar to:
 ```
@@ -143,6 +173,10 @@ From VSCode, messages to IoT Hub should look similar to:
   ]
 }
 ```
+
+Notes:
+- Learn more about Edge deployments with [Understand IoT Edge automatic deployments for single devices or at scale](https://docs.microsoft.com/en-us/azure/iot-edge/module-deployment-monitoring?view=iotedge-2018-06)
+- Review LVA through the guide [Quickstart: Get started - Live Video Analytics on IoT Edge](https://docs.microsoft.com/en-us/azure/media-services/live-video-analytics-edge/get-started-detect-motion-emit-events-quickstart)
 
 ## Flask Python web app dashboard
 
