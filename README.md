@@ -103,7 +103,7 @@ Visual Studio Code (VSCode) will be used for the following.  The following will 
 1. Deployment manifest file from this repo (`edge-module/deployment.yolov4.gpu.jetson.blob.template.json`)
 2. [LVA Python console app](https://github.com/Azure-Samples/live-video-analytics-iot-edge-python) or [.NET console app](https://github.com/Azure-Samples/live-video-analytics-iot-edge-csharp)
 
-When the Live Video Analytics on Edge direct methods are invoked on device with the console app, images will appear in a folder with the name of your local container e.g. `/media/nvme/blob_storage/BlockBlob/annotatedimageslocal` and with default deployment manifest, will stick around on device for 60 minutes as well as being uploaded to the cloud Blob Storage container (in this example, called `annotated-images-xavier-yolo4`).
+When the Live Video Analytics on Edge direct methods are invoked on device with the console app, images will appear in a folder with the name of your local container e.g. `/media/nvme/blob_storage/BlockBlob/annotatedimageslocal` and with default deployment manifest, will stick around on device for 60 minutes as well as being uploaded to the cloud Blob Storage container (in this example, called `annotated-images-yolo4`).
 
 From VSCode, messages to IoT Hub should look similar to:
 ```
