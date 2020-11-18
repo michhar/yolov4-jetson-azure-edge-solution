@@ -108,7 +108,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "$CONTAINER_REGISTRY_USERNAME_myacr.azurecr.io/rtspsim-live555:0.0.1-arm64v8",
+              "image": "rheartpython/rtspsim-live555:0.0.1-arm64v8",
               "createOptions": {
                 "HostConfig": {
                   "Binds": [
