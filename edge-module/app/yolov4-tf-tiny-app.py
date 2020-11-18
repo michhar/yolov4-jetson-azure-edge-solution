@@ -168,11 +168,13 @@ class YoloV4TinyModel:
                              valid_detections.numpy()]
                 image = cv2.cvtColor(cvImage, cv2.COLOR_BGR2RGB)
                 image = utils.draw_bbox(image, pred_bbox)
-                image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_BGR2RGB)
-                pil_image = Image.fromarray(image.astype(np.uint8))
+                #image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_BGR2RGB)
+                image = image.astype(np.uint8)[:, :, [2, 1, 0]]
+                pil_image = Image.fromarray(image)
                 # To check if there are bboxes
                 indices_check = np.squeeze(indices.numpy(), axis=0)
-                if len(indices_check) > 0:
+                scores_check = np.squeeze(scores.numpy(), axis=0)
+                if scores_check.any() > FLAGS.score:
                     # Save image to buffer
                     bytes_io = io.BytesIO()
                     pil_image.save(bytes_io, format='JPEG')
@@ -181,7 +183,8 @@ class YoloV4TinyModel:
                     blob_name = str(timestamp.strftime(
                         "%d-%b-%Y-%H-%M-%S.%f")) +"_annotated.jpg"
                     blob_metadata = {'timestamp': str(timestamp.strftime("%d-%b-%Y-%H-%M-%S.%f")),
-                            'objects': ','.join([self._labelList[int(i)] for i in indices_check])}
+                            'objects': ','.join(set([self._labelList[int(indices_check[i])] for i in range(
+                                len(indices_check)) if scores_check[i] > FLAGS.score]))}
                     try:
                         container_client = self.blob_service_client.get_container_client(
                             self.local_container_name)
