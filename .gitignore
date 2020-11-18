@@ -1,5 +1,7 @@
 .env
-.env_*
+.vars
 .DS_Store
 *.tflite
 __pycache__
+config/
+deployment.test.template.json
