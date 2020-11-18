@@ -10,6 +10,16 @@ In the diagram below, frames from an AI module are shown being sent on the edge 
 
 This AI module (docker container) utilizes the GPU on the Jetson (with NVIDIA drivers, CUDA and cuDNN installed) using an NVIDIA L4T (linux for Tegra) base image with TensorFlow 2 installed.  The Jetson must have been flashed with Jetpack 4.4.
 
+## Outline
+
+- [Xavier Setup and requirements](#xavier-setup-and-requirements)
+- [Azure requirements](#azure-requirements)
+- [Build docker AI image](#build-docker-ai-image)
+- [Deploy as an edge module for Live Video Analytics](#deploy-as-an-edge-module-for-live-video-analytics)
+- [Flask Python web app dashboard](#flask-python-web-app-dashboard)
+- [Troubleshooting](#troubleshooting)
+- [Additional resources](#additional-resources)
+
 ## Xavier Setup and requirements
 
 - Flashed with JetPack 4.4 (L4T R32.4.3) with all ML and CV tools (including `nvidia-docker`)
@@ -30,7 +40,7 @@ Create the following resources:
 
 Note:  All of these resources should be created in the same resource group to make it easier to clean-up later.  Also, all of these resources may be create in the Portal _or_ with the Azure CLI on the command line.
 
-## Build image
+## Build docker AI image
 
 The following instructions will enable you to build a docker container with a [YOLOv4 (tiny)](https://github.com//AlexeyAB/darknet) [TensorFlow Lite](https://www.tensorflow.org/lite) model using [nginx](https://www.nginx.com/), [gunicorn](https://gunicorn.org/), [flask](https://github.com/pallets/flask), and [runit](http://smarden.org/runit/).  The app code is based on the [tensorflow-yolov4-tflite](https://github.com/hunglc007/tensorflow-yolov4-tflite) project.  This project uses TensorFlow v2.
 
@@ -52,7 +62,11 @@ LOCAL_STORAGE_ACCOUNT_NAME=<Name for local blob storage in IoT edge Blob Storage
 LOCAL_STORAGE_ACCOUNT_KEY=<Key you generated for local IoT edge Blob Storage module in double quotes>
 ```
 
-Note:  Refer to [Deploy the Azure Blob Storage on IoT Edge module to your device](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-blob?view=iotedge-2018-06) for general information
+Note:
+- After the Edge deployment outlined below, two containers will be created in Azure Blob Storage:
+    - `annotated-images-yolo4`
+    - `lowconf-images-yolo4`
+- Refer to [Deploy the Azure Blob Storage on IoT Edge module to your device](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-blob?view=iotedge-2018-06) for general information
 
 ### Building the docker container
 
@@ -80,10 +94,6 @@ docker push <your ACR URL>/tiny-yolov4-tflite:arm64v8-cuda-cudnn
 Note:
 - More instruction at [Push and Pull Docker images - Azure Container Registry](http://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli) to save your image for later use on another machine.
 - IMPORTANT:  Docker may need to be configured to run with non-root user as in [Manage Docker as a non-root user](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user).
-
-## Set up Azure Storage
-
-In the [Azure Portal](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-portal#create-a-container) or with the Azure CLI create a storage container called `annotated-images-xavier-yolo4`.  This is to where the frames on the edge device will replicate.
 
 ## Deploy as an edge module for Live Video Analytics
 
@@ -134,7 +144,7 @@ From VSCode, messages to IoT Hub should look similar to:
 }
 ```
 
-## Flask Python web app
+## Flask Python web app dashboard
 
 ### Requirments
 
@@ -235,9 +245,9 @@ iotedge logs <name of your edge container e.g. azureblobstorageoniotedge>
 
 ### Keys
 
-Put keys and connection strings in quotes within the files like `.env`.
+Put keys and connection strings in quotes within the files like `.env` and `.vars`.
 
-## Helpful links
+## Additional resources
 
 - [`darknet` implementation for YOLOv4](https://github.com/AlexeyAB/darknet)
 - [TensorFlow YOLOv4 converters and implementations](https://github.com/hunglc007/tensorflow-yolov4-tflite)

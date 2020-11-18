@@ -185,7 +185,10 @@
           "cloudStorageConnectionString": "$CLOUD_STORAGE_CONN_STRING",
           "storageContainersForUpload": {
             "annotatedimageslocal": {
-              "target": "annotated-images-xavier-yolo4"
+              "target": "annotated-images-yolo4"
+            },
+            "lowconfimageslocal": {
+              "target": "lowconf-images-yolo4"
             }
           },
           "deleteAfterUpload": true
