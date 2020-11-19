@@ -284,6 +284,11 @@ Put keys and connection strings in quotes within the files like `.env` and `.var
 
 ## Additional resources
 
+- [Flask-AppBuilder for basis of web app](https://github.com/dpgaspar/Flask-AppBuilder)
+- [TensorFlow Container for Jetson and JetPack](https://ngc.nvidia.com/catalog/containers/nvidia:l4t-tensorflow)
+- [Live Video Analytics Tiny YOLOv4 TensorFlow Lite model sample](https://github.com/Azure/live-video-analytics/tree/master/utilities/video-analysis/yolov4-tflite-tiny)
+
+## Credits
+
 - [`darknet` implementation for YOLOv4](https://github.com/AlexeyAB/darknet)
 - [TensorFlow YOLOv4 converters and implementations](https://github.com/hunglc007/tensorflow-yolov4-tflite)
-- [Flask-AppBuilder for basis of web app](https://github.com/dpgaspar/Flask-AppBuilder)
