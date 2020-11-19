@@ -10,6 +10,8 @@ from sqlalchemy import Column, Date, ForeignKey, Integer, String, Text
 from azure.storage.blob import BlobServiceClient
 
 import os
+import sys
+import traceback
 
 
 class DetectionFrame(Model):
@@ -31,13 +33,20 @@ class DetectionFrame(Model):
                 local_container_name)
             blob_info = container_client.list_blobs()
             blob_cnt = len(blob_info)
-        except Exception:
+        except Exception as err:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            print({'[ERROR]': 
+                    'Error in models module: {}'.format(
+                     repr(traceback.format_exception(
+                         exc_type,
+                         exc_value,
+                         exc_traceback)))})
             blob_cnt = 'na'
 
         basedir = os.path.abspath(os.path.dirname(__file__))
         # This will reload flask app and trigger repopulating db with all images
-        with open(os.path.join(basedir, 'static', 'image_cnt.txt'), 'w') as fin:
-            fin.write(str(blob_cnt) + '\n')
+        with open(os.path.join(basedir, 'static', 'image_cnt.txt'), 'w') as fout:
+            fout.write(str(blob_cnt) + '\n')
 
     def photo_img(self):
         im = ImageManager()

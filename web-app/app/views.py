@@ -8,6 +8,8 @@ from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.widgets import ShowWidget
 
 import os
+import sys
+import traceback
 
 from . import appbuilder, db
 from .models import DetectionFrame
@@ -53,7 +55,13 @@ def update_images():
                 db.session.add(detection_frame)
             db.session.commit()  # Commits all changes
     except Exception as err:
-        print('Error ', err)
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        print({'[ERROR]': 
+                'Error in view module: {}'.format(
+                    repr(traceback.format_exception(
+                        exc_type,
+                        exc_value,
+                        exc_traceback)))})
         db.session.rollback()
 
 

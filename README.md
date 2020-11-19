@@ -235,7 +235,25 @@ You can deploy the Flask-based Python web app from the `web-app` folder with the
 
 ![web app configuration in Azure](assets/webapp_config.png)
 
-The final web app with look something like:
+For `POST_BUILD_COMMAND` value use the following command to create your admin user with your desired properties placed in the placeholders:
+
+```
+flask fab create-admin --username <admin user name for login> --firstname <first name> --lastname <last name> --email <email address> --password <admin password>`
+```
+
+For `FLASK_RUN_EXTRA_FILES` place the following into the value field:
+
+```
+static/image_cnt.txt
+```
+
+Fill in the following with the appropriate values:
+- `SAS_STRING` - for Storage Account level
+- `STORAGE_ACCOUNT` - name of account
+- `STORAGE_ACCOUNT_CONN_STRING` - for Storage Account connection string
+- `STORAGE_CONTAINER` - annotated images container to watch
+
+The final web app should look like:
 
 ![final web app](assets/webapp.png)
 
